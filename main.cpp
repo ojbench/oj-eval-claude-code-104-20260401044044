@@ -8,7 +8,8 @@ using namespace std;
 
 const int MAXN = 1005;
 int grid[MAXN][MAXN];
-int dist[MAXN][MAXN];
+int distFromStart[MAXN][MAXN];
+int distFromHome[MAXN][MAXN];
 int n, m;
 
 // Direction vectors for moving up, down, left, right
@@ -20,7 +21,7 @@ struct Point {
 };
 
 // BFS to find shortest distances from a starting point to all reachable points
-void bfs(int startX, int startY) {
+void bfs(int startX, int startY, int dist[MAXN][MAXN]) {
     // Initialize all distances to -1 (unreachable)
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
@@ -88,31 +89,18 @@ int main() {
     }
 
     // BFS from starting position
-    bfs(startX, startY);
+    bfs(startX, startY, distFromStart);
 
-    // Store distances from start to each shop
-    vector<int> distToShops;
-    for (const auto& shop : shops) {
-        if (dist[shop.x][shop.y] != -1) {
-            distToShops.push_back(dist[shop.x][shop.y]);
-        } else {
-            distToShops.push_back(INT_MAX);
-        }
-    }
+    // BFS from home position (backward search)
+    bfs(homeX, homeY, distFromHome);
 
-    // Find minimum total distance
+    // Find minimum total distance through any shop
     int minDist = INT_MAX;
 
-    for (size_t i = 0; i < shops.size(); i++) {
-        if (distToShops[i] == INT_MAX) {
-            continue; // Can't reach this shop
-        }
-
-        // BFS from this shop to find distance to home
-        bfs(shops[i].x, shops[i].y);
-
-        if (dist[homeX][homeY] != -1) {
-            int totalDist = distToShops[i] + dist[homeX][homeY];
+    for (const auto& shop : shops) {
+        // Check if both paths are reachable
+        if (distFromStart[shop.x][shop.y] != -1 && distFromHome[shop.x][shop.y] != -1) {
+            int totalDist = distFromStart[shop.x][shop.y] + distFromHome[shop.x][shop.y];
             minDist = min(minDist, totalDist);
         }
     }
